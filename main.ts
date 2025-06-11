@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
-import { readAutosave, saveAutosave, readFileContent, getRecent, addRecent } from './fileUtils';
+import { readAutosave, saveAutosave, readFileContent, saveFileContent, getRecent, addRecent } from './fileUtils';
 
 let mainWindow: BrowserWindow | null = null;
 let splash: BrowserWindow | null = null;
@@ -43,9 +43,44 @@ ipcMain.handle('save-autosave', (_e, content) => saveAutosave(content));
 ipcMain.handle('open-file', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({ filters: [{ name: 'Markdown', extensions: ['md'] }], properties: ['openFile'] });
   if (canceled || filePaths.length === 0) return null;
-  const content = await readFileContent(filePaths[0]);
-  await addRecent(filePaths[0]);
-  return { content, path: filePaths[0] };
+  try {
+    const content = await readFileContent(filePaths[0]);
+    await addRecent(filePaths[0]);
+    return { content, path: filePaths[0] };
+  } catch (err) {
+    dialog.showErrorBox('Error', err instanceof Error ? err.message : String(err));
+    return null;
+  }
 });
 ipcMain.handle('get-recent', getRecent);
+
+ipcMain.handle('save-file', async (_e, { filePath, content }: { filePath?: string; content: string }) => {
+  let target = filePath;
+  if (!target) {
+    const { canceled, filePath: savePath } = await dialog.showSaveDialog({
+      filters: [{ name: 'Markdown', extensions: ['md'] }]
+    });
+    if (canceled || !savePath) return null;
+    target = savePath;
+  }
+  try {
+    await saveFileContent(target, content);
+    await addRecent(target);
+    return { path: target };
+  } catch (err) {
+    dialog.showErrorBox('Error', err instanceof Error ? err.message : String(err));
+    return null;
+  }
+});
+
+ipcMain.handle('read-file', async (_e, filePath: string) => {
+  try {
+    const content = await readFileContent(filePath);
+    await addRecent(filePath);
+    return { content, path: filePath };
+  } catch (err) {
+    dialog.showErrorBox('Error', err instanceof Error ? err.message : String(err));
+    return null;
+  }
+});
 
