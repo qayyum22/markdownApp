@@ -26,4 +26,5 @@ npm run build
 - Recent file tracking
 - Light/Dark theme toggle
 - Splash screen on startup
+- Upload `.md` files via drag-and-drop or by clicking the upload area in the editor panel
 

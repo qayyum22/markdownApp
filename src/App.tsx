@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
 import rehypePrism from 'rehype-prism-plus';
@@ -63,6 +63,8 @@ const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState<string | undefined>(undefined);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const [theme, setTheme] = useState<'light' | 'dark'>(prefersDark ? 'dark' : 'light');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -116,6 +118,34 @@ const App: React.FC = () => {
   const newFile = () => {
     setMarkdown('');
     setCurrentPath(undefined);
+  };
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.name.endsWith('.md')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target?.result as string;
+      if (text !== undefined) setMarkdown(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
   };
 
   const openRecent = async (p: string) => {
@@ -174,6 +204,22 @@ const App: React.FC = () => {
         {/* Editor Panel */}
         <section className="flex-1 flex flex-col mb-4 md:mb-0">
           <label className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Markdown Input</label>
+          <input
+            type="file"
+            accept=".md"
+            ref={fileInputRef}
+            onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+            className="hidden"
+          />
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            className={`drop-zone ${dragging ? 'dragging' : ''}`}
+          >
+            Drag and drop a <code>.md</code> file here or click to upload
+          </div>
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
             <textarea
               className="w-full h-full min-h-[300px] max-h-[70vh] p-4 text-base font-mono bg-transparent outline-none resize-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
