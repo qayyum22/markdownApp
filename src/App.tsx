@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
-import remarkPrism from 'remark-prism';
+import rehypePrism from 'rehype-prism-plus';
 import 'prismjs/themes/prism.css';
 
 declare global {
@@ -187,7 +187,7 @@ const App: React.FC = () => {
         <section className="flex-1 flex flex-col mt-6 md:mt-0">
           <label className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Preview</label>
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-auto prose dark:prose-invert max-h-[70vh] p-6">
-            <ReactMarkdown remarkPlugins={[gfm, remarkPrism]}>{markdown}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[gfm]} rehypePlugins={[rehypePrism]}>{markdown}</ReactMarkdown>
           </div>
         </section>
       </main>
