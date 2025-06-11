@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
+import remarkPrism from 'remark-prism';
+import 'prismjs/themes/prism.css';
 
 declare global {
   interface Window {
@@ -9,6 +11,8 @@ declare global {
       saveAutosave: (c: string) => Promise<void>;
       openFile: () => Promise<{ content: string; path: string } | null>;
       getRecent: () => Promise<string[]>;
+      saveFile: (content: string, path?: string) => Promise<{ path: string } | null>;
+      readFile: (path: string) => Promise<{ content: string; path: string } | null>;
     };
   }
 }
@@ -42,13 +46,25 @@ const electronAPI = window.electronAPI ?? {
   saveAutosave: async () => {},
   openFile: async () => null,
   getRecent: async () => [],
+  saveFile: async () => null,
+  readFile: async () => null,
 };
 
 const App: React.FC = () => {
   const [markdown, setMarkdown] = useState('');
   const [recent, setRecent] = useState<string[]>([]);
+  const [currentPath, setCurrentPath] = useState<string | undefined>(undefined);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const [theme, setTheme] = useState<'light' | 'dark'>(prefersDark ? 'dark' : 'light');
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (stored) setTheme(stored);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     if (theme === 'dark') document.documentElement.classList.add('dark');
@@ -69,6 +85,32 @@ const App: React.FC = () => {
     const result = await electronAPI.openFile();
     if (result) {
       setMarkdown(result.content);
+      setCurrentPath(result.path);
+      setRecent(await electronAPI.getRecent());
+    }
+  };
+
+  const saveFile = async () => {
+    const result = await electronAPI.saveFile(markdown, currentPath);
+    if (result) {
+      setCurrentPath(result.path);
+      setRecent(await electronAPI.getRecent());
+    }
+  };
+
+  const saveFileAs = async () => {
+    const result = await electronAPI.saveFile(markdown, undefined);
+    if (result) {
+      setCurrentPath(result.path);
+      setRecent(await electronAPI.getRecent());
+    }
+  };
+
+  const openRecent = async (p: string) => {
+    const result = await electronAPI.readFile(p);
+    if (result) {
+      setMarkdown(result.content);
+      setCurrentPath(result.path);
       setRecent(await electronAPI.getRecent());
     }
   };
@@ -85,6 +127,18 @@ const App: React.FC = () => {
           onClick={openFile}
         >
           <OpenIcon /> Open File
+        </button>
+        <button
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium ml-2 shadow transition-colors"
+          onClick={saveFile}
+        >
+          Save
+        </button>
+        <button
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium ml-2 shadow transition-colors"
+          onClick={saveFileAs}
+        >
+          Save As
         </button>
         <button
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium ml-2 shadow transition-colors"
@@ -112,7 +166,7 @@ const App: React.FC = () => {
         <section className="flex-1 flex flex-col mt-6 md:mt-0">
           <label className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Preview</label>
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-auto prose dark:prose-invert max-h-[70vh] p-6">
-            <ReactMarkdown remarkPlugins={[gfm]}>{markdown}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[gfm, remarkPrism]}>{markdown}</ReactMarkdown>
           </div>
         </section>
       </main>
@@ -121,7 +175,19 @@ const App: React.FC = () => {
       <footer className="px-6 py-2 border-t bg-white/80 dark:bg-gray-900/80 text-xs text-gray-600 dark:text-gray-400 flex items-center justify-between">
         <div>
           {recent.length > 0 && (
-            <span>Recent: {recent.map((r, i) => <span key={r}>{i > 0 && ', '}{r.split(/[\\/]/).pop()}</span>)}</span>
+            <span>
+              Recent:
+              {recent.map((r, i) => (
+                <button
+                  key={r}
+                  onClick={() => openRecent(r)}
+                  className="ml-1 underline hover:text-blue-600"
+                >
+                  {i > 0 && ', '}
+                  {r.split(/[\\/]/).pop()}
+                </button>
+              ))}
+            </span>
           )}
         </div>
         <a

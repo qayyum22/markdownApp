@@ -23,11 +23,27 @@ export async function readAutosave(): Promise<string> {
 }
 
 export async function saveAutosave(content: string): Promise<void> {
-  await fs.writeFile(getAutosavePath(), content, 'utf-8');
+  try {
+    await fs.writeFile(getAutosavePath(), content, 'utf-8');
+  } catch (err) {
+    throw new Error(`Failed to save autosave: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 export async function readFileContent(filePath: string): Promise<string> {
-  return fs.readFile(filePath, 'utf-8');
+  try {
+    return await fs.readFile(filePath, 'utf-8');
+  } catch (err) {
+    throw new Error(`Failed to read file: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+export async function saveFileContent(filePath: string, content: string): Promise<void> {
+  try {
+    await fs.writeFile(filePath, content, 'utf-8');
+  } catch (err) {
+    throw new Error(`Failed to write file: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 export async function getRecent(): Promise<string[]> {
