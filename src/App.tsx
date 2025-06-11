@@ -130,7 +130,7 @@ const App: React.FC = () => {
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file && file.path.endsWith('.md')) {
+    if (file && file.path && file.path.toLowerCase().endsWith('.md')) {
       const result = await electronAPI.readFile(file.path);
       if (result) {
         setMarkdown(result.content);
