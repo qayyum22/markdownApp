@@ -8,8 +8,10 @@
     "dev": "concurrently -k \"vite\" \"npm:electron-dev\"",
     "electron-dev": "electron -r ts-node/register ./main.ts",
     "build": "npm run build-main && npm run build-renderer && electron-builder",
-    "build-main": "tsc -p . --outDir dist && cp -r public dist/public",
-    "build-renderer": "vite build"
+    "build-main": "tsc -p tsconfig.main.json && cpx \"public/**/*\" dist/public",
+    "build-renderer": "vite build",
+    "preview": "npm run build && electron .",
+    "clean": "rimraf dist release"
   },
   "build": {
     "appId": "com.example.markdownapp",
@@ -28,27 +30,35 @@
       "main": "dist/main.js"
     },
     "win": {
-      "target": ["nsis"],
-      "icon": "assets/icon.ico",
-      "deleteAppDataOnUninstall": true
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis"
+      ]
     },
     "mac": {
-      "target": ["dmg"],
-      "icon": "assets/icon.icns"
+      "target": [
+        "dmg"
+      ]
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "icon": "assets/icon.png"
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/react": "^19.1.7",
+    "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.0.0",
     "autoprefixer": "^10.4.0",
     "concurrently": "^8.0.0",
+    "cpx": "^1.5.0",
     "electron": "^26.2.0",
-    "electron-builder": "^24.6.0",
+    "electron-builder": "^26.0.12",
     "postcss": "^8.4.0",
+    "rimraf": "^5.0.0",
     "tailwindcss": "^3.3.2",
     "ts-node": "^10.0.0",
     "typescript": "^5.0.4",
