@@ -5,8 +5,9 @@
   "main": "dist/main.js",
   "scripts": {
     "start": "npm run dev",
-    "dev": "concurrently -k \"vite\" \"npm:electron-dev\"",
-    "electron-dev": "electron -r ts-node/register ./main.ts",
+    "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:main\"",
+    "dev:renderer": "vite",
+    "dev:main": "tsc -p tsconfig.main.json && electron .",
     "build": "npm run build-main && npm run build-renderer && electron-builder",
     "build-main": "tsc -p tsconfig.main.json && cpx \"public/**/*\" dist/public",
     "build-renderer": "vite build",
@@ -48,6 +49,7 @@
     }
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20.0.0",
     "@types/react": "^19.1.7",
     "@types/react-dom": "^19.1.6",

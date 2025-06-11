@@ -1,7 +1,7 @@
+@import 'prismjs/themes/prism.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import 'prismjs/themes/prism.css';
 
 .drop-zone {
   @apply border-2 border-dashed rounded-lg cursor-pointer text-center text-sm p-4 text-gray-600 dark:text-gray-300 mb-2;
