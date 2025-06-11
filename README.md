@@ -27,3 +27,10 @@ npm run build
 - Light/Dark theme toggle
 - Splash screen on startup
 
+## Opening Markdown Files
+
+1. Click the **Open File** button in the header and choose any `.md` file.
+2. Alternatively, drag and drop a Markdown file onto the window to open it.
+
+The editor automatically saves your work and keeps a list of recent files for quick access.
+
