@@ -31,6 +31,13 @@ const OpenIcon = () => (
   </svg>
 );
 
+const NewFileIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="inline mr-1">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16h16V8l-6-4H4z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 3v5h5" />
+  </svg>
+);
+
 const ThemeIcon = ({ theme }: { theme: string }) => theme === 'dark' ? (
   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="inline mr-1">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 4.05l-.71.71M21 12h-1M4 12H3m16.95 7.95l-.71-.71M4.05 19.95l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -106,6 +113,11 @@ const App: React.FC = () => {
     }
   };
 
+  const newFile = () => {
+    setMarkdown('');
+    setCurrentPath(undefined);
+  };
+
   const openRecent = async (p: string) => {
     const result = await electronAPI.readFile(p);
     if (result) {
@@ -130,6 +142,12 @@ const App: React.FC = () => {
         </button>
         <button
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium ml-2 shadow transition-colors"
+          onClick={newFile}
+        >
+          <NewFileIcon /> New File
+        </button>
+        <button
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium ml-2 shadow transition-colors"
           onClick={saveFile}
         >
           Save
@@ -140,6 +158,9 @@ const App: React.FC = () => {
         >
           Save As
         </button>
+        <span className="ml-4 text-sm text-gray-700 dark:text-gray-300 truncate max-w-[12rem]">
+          {currentPath ? currentPath.split(/[\\/]/).pop() : 'Untitled'}
+        </span>
         <button
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium ml-2 shadow transition-colors"
           onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
