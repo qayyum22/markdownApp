@@ -65,6 +65,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>(prefersDark ? 'dark' : 'light');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const dragCounter = useRef(0);
 
   useEffect(() => {
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -126,26 +127,38 @@ const App: React.FC = () => {
     if (!file.name.endsWith('.md')) return;
     const reader = new FileReader();
     reader.onload = e => {
-      const text = e.target?.result as string;
-      if (text !== undefined) setMarkdown(text);
+      const text = e.target?.result;
+      if (typeof text === 'string') {
+        setMarkdown(text);
+        setCurrentPath(undefined);
+      }
     };
     reader.readAsText(file);
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    dragCounter.current = 0;
     setDragging(false);
     handleFiles(e.dataTransfer.files);
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+  };
+
+  const onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    dragCounter.current++;
     setDragging(true);
   };
 
   const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setDragging(false);
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragging(false);
+    }
   };
 
   const openRecent = async (p: string) => {
@@ -215,6 +228,7 @@ const App: React.FC = () => {
             onClick={() => fileInputRef.current?.click()}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onDragEnter={onDragEnter}
             onDragLeave={onDragLeave}
             className={`drop-zone ${dragging ? 'dragging' : ''}`}
           >
